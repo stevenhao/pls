@@ -2,7 +2,7 @@ root = exports ? this
 if (Meteor.isClient)
   $(document).ready ->
     console.log 'document is ready'
-    board = new root.Board
+    board = new root.BoardView
       one: 1
       two: 2
 

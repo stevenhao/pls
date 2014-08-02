@@ -1,17 +1,45 @@
 @dim: 40px;
 
+body {
+  background-image: url('http://f.cl.ly/items/2P3f2H163A2m2Y0e3H1l/puppy.jpg');
+}
 * {
   box-sizing: border-box;
 }
 
 .chess-board-container {
+  width: @dim * 8;
+  height: @dim * 8;
   .square {
     width: @dim;
     height: @dim;
-    border: 1px solid green;
     display: inline-block;
+    &.black {
+      background-color: black;
+    }
+    &.white {
+      background-color: white;
+    }
+  }
+  .square {
+    &:first-child {
+      border-left: 1px solid black;
+    }
+    &:last-child {
+      border-right: 1px solid black;
+    }
   }
   .row {
     height: @dim;
+    &:first-child {
+      .square {
+        border-top: 1px solid black;
+      }
+    }
+    &:last-child {
+      .square {
+        border-bottom: 1px solid black;
+      }
+    }
   }
 }
