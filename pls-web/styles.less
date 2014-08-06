@@ -1,7 +1,7 @@
 @dim: 40px;
 
 body {
-  background-image: url('http://f.cl.ly/items/2P3f2H163A2m2Y0e3H1l/puppy.jpg');
+  background-image: url('http://cdn.superbwallpapers.com/wallpapers/cartoons/elsa-frozen-25406-400x250.jpg');
 }
 * {
   box-sizing: border-box;
@@ -15,13 +15,16 @@ body {
     height: @dim;
     display: inline-block;
     &.black {
-      background-color: black;
+      background-color: #d18b47;
     }
     &.white {
-      background-color: white;
+      background-color: #ffce9e;
     }
   }
-  .square {
+  .row {
+    height: @dim;
+  }
+/*  .square {
     &:first-child {
       border-left: 1px solid black;
     }
@@ -40,6 +43,11 @@ body {
       .square {
         border-bottom: 1px solid black;
       }
+    }
+  }*/
+  .square {
+    &.selected {
+      border: 2px solid red;
     }
   }
 }

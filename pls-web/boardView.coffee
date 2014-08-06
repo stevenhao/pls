@@ -8,7 +8,6 @@ class root.BoardView extends Backbone.View
     @_buildBoard()
 
   _buildBoard: ->
-    color = true
     for row in _.range(8)
       rowEl = $ '<div/>',
         class: 'row'
@@ -19,7 +18,10 @@ class root.BoardView extends Backbone.View
           row: row
           col: col
           color: color
+          selected: 'notselected'
+          parent: this
           )
+        @curguy = squareView
         squareView.render()
         rowEl.append(squareView.$el)
       @$el.append(rowEl)
@@ -34,11 +36,23 @@ class root.SquareView extends Backbone.View
     @row = options.row
     @col = options.col
     @color = options.color
+    @selected = options.selected
+    @parent = options.parent
 
   render: =>
     # console.log 'render'
     @$el.attr('id', "square#{@row},#{@col}")
     @$el.addClass(@color)
 
+  select: =>
+    @$el.addClass('selected')
+
+  unselect: =>
+    @$el.removeClass('selected')
+
   _onClick: (e) =>
+    @selected = 'selected'
     console.log 'yo i clickd', @row, @col
+    @parent.curguy.unselect()
+    @parent.curguy = this
+    @select()
