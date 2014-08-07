@@ -1,5 +1,9 @@
 root = exports ? this
 
+mp = 
+  whiteKing : 'http://chessboardjs.com/img/chesspieces/wikipedia/wK.png'
+  blackKing : 'http://chessboardjs.com/img/chesspieces/wikipedia/bK.png'
+
 
 class controller
   initialize: (options) ->
@@ -37,7 +41,7 @@ class root.BoardView extends Backbone.View
           color: color
           selected: 'notselected'
           parent: this
-          )
+        )
         @curguy = squareView
         squareView.render()
         rowEl.append(squareView.$el)
@@ -55,14 +59,26 @@ class root.SquareView extends Backbone.View
     @color = options.color
     @selected = options.selected
     @parent = options.parent
+    @piecetype = 'blank'
 
   render: =>
     # console.log 'render'
     @$el.attr('id', "square#{@row}_#{@col}")
     @$el.addClass(@color)
 
+  setpiece: (ptype) ->
+    if @pieceType != 'blank'
+      @$el.removeClass(@pieceType)
+      @pieceType = 'blank'
+    @pieceType = ptype
+    img = $ '<img>'
+    img.attr('src', mp[@pieceType])
+    img.addClass('piece')
+    @$el.html(img)
+
   select: =>
     @$el.addClass('selected')
+    @setpiece 'whiteKing'
 
   unselect: =>
     @$el.removeClass('selected')
