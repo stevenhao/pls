@@ -1,7 +1,7 @@
 root = exports ? this
 
 mp = 
-  whiteKing : 'http://chessboardjs.com/img/chesspieces/wikipedia/wK.png'
+  whiteKing : 'http://cl.ly/image/0K0S3u2S2M1V/wK.png'
   blackKing : 'http://chessboardjs.com/img/chesspieces/wikipedia/bK.png'
 
 
