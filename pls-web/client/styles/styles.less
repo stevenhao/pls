@@ -1,7 +1,7 @@
 @dim: 40px;
 
 body {
-  background-image: url('http://cdn.superbwallpapers.com/wallpapers/cartoons/elsa-frozen-25406-400x250.jpg');
+  // background-image: url('http://cdn.superbwallpapers.com/wallpapers/cartoons/elsa-frozen-25406-400x250.jpg');
 }
 * {
   box-sizing: border-box;
@@ -46,8 +46,14 @@ body {
     }
   }*/
   .square {
+    float: left;
+    border: 2px solid transparent;
     &.selected {
       border: 2px solid red;
+    }
+    img {
+      width: 36px;
+      height: 36px;
     }
   }
 
