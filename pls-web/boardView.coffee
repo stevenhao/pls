@@ -1,11 +1,11 @@
 root = exports ? this
 
-mp = 
+mp =
   whiteKing : 'http://cl.ly/image/0K0S3u2S2M1V/wK.png'
   blackKing : 'http://chessboardjs.com/img/chesspieces/wikipedia/bK.png'
 
 
-class controller
+class Controller
   initialize: (options) ->
     @cursq = undefined
 
@@ -22,7 +22,7 @@ class controller
 
 class root.BoardView extends Backbone.View
   initialize: (options) ->
-    @controller = new controller()
+    @controller = new Controller()
     console.log options
 
   render: ->
@@ -62,7 +62,6 @@ class root.SquareView extends Backbone.View
     @piecetype = 'blank'
 
   render: =>
-    # console.log 'render'
     @$el.attr('id', "square#{@row}_#{@col}")
     @$el.addClass(@color)
 
