@@ -7,10 +7,19 @@ root = exports ? this
 # the root object, which is accessible in all other files that
 # have the `root = exports ? this` line.
 class root.BoardController
+  @next:
+#      'wK': 'wQ'
+    'wK': 'bK'
+    'wQ': 'wR'
+    'wR': 'bK'
+    'bK': null
   initialize: ->
     @_setUpBoardModel()
     @_createBoardView()
+    @addPiece = 'wK'
 
+
+    
   _createBoardView: =>
     @boardView = new root.BoardView
       model: @boardModel
@@ -32,17 +41,33 @@ class root.BoardController
 
     @boardModel.on 'clickSquare', @_onClickSquare
 
-  _onClickSquare: (squareModel) =>
-    prevSelected = @boardModel.get('selectedSquare')
-    if prevSelected?
-      # we need to unselect the current square
-      prevSelected.set('selected', false)
+
+  _deselect: (curSquare) =>
       @boardModel.unset('selectedSquare')
+      curSquare.set('selected', false)
 
-    unless squareModel is prevSelected
-      @boardModel.set('selectedSquare', squareModel)
-      squareModel.set('selected', true)
+  _select: (curSquare) =>
+      @boardModel.set('selectedSquare', curSquare)
+      curSquare.set('selected', true)
 
-    # for now, add a white king
-    squareModel.set('piece', 'wK')
+  _move: (prvSquare, curSquare) =>
+      prvPiece = prvSquare.get('piece')
+      curSquare.set('piece', prvPiece)
+      prvSquare.unset('piece')
 
+  _onClickSquare: (curSquare) =>
+    if @addPiece?
+      curSquare.set('piece', @addPiece)
+      @addPiece = root.BoardController.next[@addPiece]
+    else
+      prvSquare = @boardModel.get('selectedSquare')
+      if prvSquare?
+        @_deselect(prvSquare)
+        @_move(prvSquare, curSquare)
+      else
+        @_select(curSquare)
+      
+#  _onRightClickSquare: (curSquare) =>
+    
+
+    
