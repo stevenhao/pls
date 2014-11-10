@@ -17,8 +17,6 @@ class root.BoardController
     @_createBoardView()
     @addPiece = 'wK'
     @whoseTurn = 'w'
-    Meteor.call('yo')
-
     
   _createBoardView: =>
     @boardView = new root.BoardView
@@ -70,7 +68,6 @@ class root.BoardController
         else
           @whoseTurn = 'w'
     )
-
   _onClickSquare: (curSquare) =>
     if @addPiece?
       curSquare.set('piece', @addPiece)
