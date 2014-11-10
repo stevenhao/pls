@@ -8,16 +8,15 @@ root = exports ? this
 # have the `root = exports ? this` line.
 class root.BoardController
   @next:
-#      'wK': 'wQ'
-    'wK': 'bK'
-    'wQ': 'wR'
-    'wR': 'bK'
-    'bK': null
+    'wK': 'wQ'
+    'wQ': 'bK'
+    'bK': 'bR'
+    'bR': null
   initialize: ->
     @_setUpBoardModel()
     @_createBoardView()
     @addPiece = 'wK'
-
+    @whoseTurn = 'w'
 
     
   _createBoardView: =>
@@ -50,10 +49,70 @@ class root.BoardController
       @boardModel.set('selectedSquare', curSquare)
       curSquare.set('selected', true)
 
+  _validMove: (prvSquare, curSquare) =>
+    prvPiece = prvSquare.get('piece')
+    curPiece = curSquare.get('piece')
+    if prvSquare == curSquare
+      return false
+    if !prvPiece
+      return false
+    if prvPiece.charAt(0) != @whoseTurn
+      return false
+    if curPiece and curPiece.charAt(0) == @whoseTurn
+      return false
+
+    prvX = prvSquare.get('row')
+    prvY = prvSquare.get('col')
+    curX = curSquare.get('row')
+    curY = curSquare.get('col')
+
+    console.log('trying to move from ' + prvX + ',' + prvY + ' to ' + curX + ',' + curY)
+    if prvPiece.charAt(1) == 'K'
+      for dx in _.range(-1, 2)
+        for dy in _.range(-1, 2)
+          nx = prvX + dx
+          ny = prvY + dy
+          if nx == curX and ny == curY
+            return true
+    else if prvPiece.charAt(1) == 'Q'
+      for dx in _.range(-1, 2)
+        for dy in _.range(-1, 2)
+          for len in _.range(1, 8)
+            nx = prvX + dx * len
+            ny = prvY + dy * len
+            if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
+              break
+            if nx == curX and ny == curY
+              return true
+            sq = @boardModel.getSquareAt(nx, ny)
+            if sq.get('piece')
+              break
+    else if prvPiece.charAt(1) == 'R'
+      for dx in _.range(-1, 2)
+        for dy in _.range(-1, 2)
+          if dx == 0 or dy == 0
+            for len in _.range(1, 8)
+             nx = prvX + dx * len
+             ny = prvY + dy * len
+             if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
+               break
+             if nx == curX and ny == curY
+               return true
+             sq = @boardModel.getSquareAt(nx, ny)
+             if sq.get('piece')
+               break
+    return false
+
+
   _move: (prvSquare, curSquare) =>
+    if @_validMove(prvSquare, curSquare)
       prvPiece = prvSquare.get('piece')
       curSquare.set('piece', prvPiece)
       prvSquare.unset('piece')
+      if @whoseTurn == 'w'
+        @whoseTurn = 'b'
+      else
+        @whoseTurn = 'w'
 
   _onClickSquare: (curSquare) =>
     if @addPiece?
@@ -65,7 +124,8 @@ class root.BoardController
         @_deselect(prvSquare)
         @_move(prvSquare, curSquare)
       else
-        @_select(curSquare)
+        if curSquare.get('piece') and curSquare.get('piece').charAt(0) == @whoseTurn
+          @_select(curSquare)
       
 #  _onRightClickSquare: (curSquare) =>
     
