@@ -162,7 +162,7 @@ int main() {
     printf("read %d %d %d %d %d\n", K, Q, k, r, turn);
     int cur = mask(K, Q, k, r, turn);
     printf("mask = %d\n", cur);
-    printf("white mates in %d\n", (ans[cur]) / 2 - 1) ;
+    printf("white mates in %d\n", (ans[cur]) / 2) ;
     vector<int> conn;
     compto(K, Q, k, r, turn, conn);
     printf("comp'd.\n");

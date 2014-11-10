@@ -224,6 +224,7 @@ int main() {
           }
         }
       }
+      ans[*cur] = i;
       pprintf("%d ", *cur);
     }
     pprintf("-1\n");

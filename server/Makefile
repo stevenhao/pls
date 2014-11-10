@@ -4,7 +4,7 @@ out: main
 	./main
 
 main:
-	g++ KQkr.cpp -o main
+	g++ KQkr.cpp -o main -O2
 
 parse:
 	g++ parser.cpp -o parse
