@@ -1,0 +1,10 @@
+less -- css thing
+underscore -- javascript utilities like _.range(...)
+meteor -- make apps
+coffeescript -- language that looks like python-javascript
+backbone -- model view controller stuff
+	collections of models with utilities
+	backbonejs.org
+	
+jquery -- awesome stuff
+
