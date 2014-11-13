@@ -130,7 +130,7 @@ int parse(int x) {
 bool get() {
   printf("Enter RC RC RC RC T (T = 1 if white to move)\n");
   int _K, _Q, _k, _r;;
-  scanf("%d %d %d %d %d", &_K, &_Q, &_k, &_r, &turn);
+  if (scanf("%d %d %d %d %d", &_K, &_Q, &_k, &_r, &turn) == -1) return false;
   K = parse(_K); Q = parse(_Q); k = parse(_k); r = parse(_r);
   return true;
 }

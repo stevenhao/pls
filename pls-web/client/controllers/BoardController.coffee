@@ -17,6 +17,7 @@ class root.BoardController
     @_createBoardView()
     @addPiece = 'wK'
     @whoseTurn = 'w'
+    Meteor.call('yo')
 
     
   _createBoardView: =>
@@ -42,77 +43,33 @@ class root.BoardController
 
 
   _deselect: (curSquare) =>
-      @boardModel.unset('selectedSquare')
-      curSquare.set('selected', false)
+    @boardModel.unset('selectedSquare')
+    curSquare.set('selected', false)
 
   _select: (curSquare) =>
-      @boardModel.set('selectedSquare', curSquare)
-      curSquare.set('selected', true)
-
-  _validMove: (prvSquare, curSquare) =>
-    prvPiece = prvSquare.get('piece')
-    curPiece = curSquare.get('piece')
-    if prvSquare == curSquare
-      return false
-    if !prvPiece
-      return false
-    if prvPiece.charAt(0) != @whoseTurn
-      return false
-    if curPiece and curPiece.charAt(0) == @whoseTurn
-      return false
-
-    prvX = prvSquare.get('row')
-    prvY = prvSquare.get('col')
-    curX = curSquare.get('row')
-    curY = curSquare.get('col')
-
-    console.log('trying to move from ' + prvX + ',' + prvY + ' to ' + curX + ',' + curY)
-    if prvPiece.charAt(1) == 'K'
-      for dx in _.range(-1, 2)
-        for dy in _.range(-1, 2)
-          nx = prvX + dx
-          ny = prvY + dy
-          if nx == curX and ny == curY
-            return true
-    else if prvPiece.charAt(1) == 'Q'
-      for dx in _.range(-1, 2)
-        for dy in _.range(-1, 2)
-          for len in _.range(1, 8)
-            nx = prvX + dx * len
-            ny = prvY + dy * len
-            if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
-              break
-            if nx == curX and ny == curY
-              return true
-            sq = @boardModel.getSquareAt(nx, ny)
-            if sq.get('piece')
-              break
-    else if prvPiece.charAt(1) == 'R'
-      for dx in _.range(-1, 2)
-        for dy in _.range(-1, 2)
-          if dx == 0 or dy == 0
-            for len in _.range(1, 8)
-             nx = prvX + dx * len
-             ny = prvY + dy * len
-             if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
-               break
-             if nx == curX and ny == curY
-               return true
-             sq = @boardModel.getSquareAt(nx, ny)
-             if sq.get('piece')
-               break
-    return false
-
+    @boardModel.set('selectedSquare', curSquare)
+    curSquare.set('selected', true)
 
   _move: (prvSquare, curSquare) =>
-    if @_validMove(prvSquare, curSquare)
-      prvPiece = prvSquare.get('piece')
-      curSquare.set('piece', prvPiece)
-      prvSquare.unset('piece')
-      if @whoseTurn == 'w'
-        @whoseTurn = 'b'
-      else
-        @whoseTurn = 'w'
+    console.log('calling server to check valid move')
+    console.log('passing ' + @whoseTurn + "," + @boardModel)
+    console.log('prvPiece = ' + prvSquare.get('piece'))
+    _whoseTurn = JSON.stringify(@whoseTurn)
+    _boardModel = JSON.stringify(@boardModel)
+    _prvSquare = JSON.stringify(prvSquare)
+    _curSquare = JSON.stringify(curSquare)
+    Meteor.call('validMove', _whoseTurn, _boardModel, _prvSquare, _curSquare, 
+      (err, data) =>
+        if !data
+          return
+        prvPiece = prvSquare.get('piece')
+        curSquare.set('piece', prvPiece)
+        prvSquare.unset('piece')
+        if @whoseTurn == 'w'
+          @whoseTurn = 'b'
+        else
+          @whoseTurn = 'w'
+    )
 
   _onClickSquare: (curSquare) =>
     if @addPiece?

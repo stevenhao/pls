@@ -10,4 +10,4 @@ class root.BoardModel extends Backbone.Model
     _.first @get('squares').where(
       row: row
       col: col
-      )
+    )

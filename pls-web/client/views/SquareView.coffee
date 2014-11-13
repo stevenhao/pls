@@ -4,10 +4,10 @@ class root.SquareView extends Backbone.View
   # putting @ in front makes it a property of the class, not an instance
   # this is like a static variable
   @mp:
-    wK : 'http://chessboardjs.com/img/chesspieces/wikipedia/wK.png'
-    bK : 'http://chessboardjs.com/img/chesspieces/wikipedia/bK.png'
-    wQ : 'http://chessboardjs.com/img/chesspieces/wikipedia/wQ.png'
-    bR : 'http://chessboardjs.com/img/chesspieces/wikipedia/bR.png'
+    wK : 'images/wK.png'
+    bK : 'images/bK.png'
+    wQ : 'images/wQ.png'
+    bR : 'images/bR.png'
 
   # this is a special Backbone.View property
   className: 'square'
