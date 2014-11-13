@@ -50,14 +50,9 @@ class root.BoardController
 
   _move: (prvSquare, curSquare) =>
     console.log('calling server to check valid move')
-    console.log('passing ' + @whoseTurn + "," + @boardModel)
-    console.log('prvPiece = ' + prvSquare.get('piece'))
-    _whoseTurn = JSON.stringify(@whoseTurn)
-    _boardModel = JSON.stringify(@boardModel)
-    _prvSquare = JSON.stringify(prvSquare)
-    _curSquare = JSON.stringify(curSquare)
-    Meteor.call('validMove', _whoseTurn, _boardModel, _prvSquare, _curSquare, 
+    Meteor.call('validMove', @whoseTurn, @boardModel, prvSquare, curSquare, 
       (err, data) =>
+        console.log('received ' + data)
         if !data
           return
         prvPiece = prvSquare.get('piece')
