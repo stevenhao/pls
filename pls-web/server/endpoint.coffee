@@ -2,39 +2,25 @@ root = exports ? this
 
 
 if (Meteor.isServer)
-  console.log('loaded')
   Meteor.methods(
     validMove: (whoseTurn, _board, prvSquare, curSquare) =>
       board = new root.BoardModel(_board)
       board.set('squares', new Backbone.Collection(board.get('squares')))
       return _validMove(whoseTurn, board, prvSquare, curSquare)
+
     bestMove: (whoseTurn, _board) =>
-      console.log('computing best move.')
       board = new root.BoardModel(_board)
       board.set('squares', new Backbone.Collection(board.get('squares')))
       return _getBestMove(whoseTurn, board)
+
+    isInCheck: (whoseTurn, _board) =>
+      board = new root.BoardModel(_board)
+      board.set('squares', new Backbone.Collection(board.get('squares')))
+      return _isInCheck(whoseTurn, board)
   )
 
-_hash = (x, y) =>
-  return x * 8 + y
 
-_getBestMove = (whoseTurn, board) =>
-  allMoves = _getMoves(whoseTurn, board)
-  ret = allMoves[~~(Math.random() * allMoves.length)]
-  console.log('picked ' + ret.frm.row + ',' + ret.frm.col + ' to ' + ret.to.row + ',' + ret.to.col)
-  return ret
 
-_getMoves = (whoseTurn, board) =>
-  console.log('getting moves.')
-  ret = []
-  for x in _.range(0, 8)
-    for y in _.range(0, 8)
-      sq = board.getSquareAt(x, y)
-      if sq.get('piece')?.charAt(0) == whoseTurn
-        for dest in _getMovesFrom(JSON.parse(JSON.stringify(sq)), board)
-          ret.push { frm: {row: sq.get('row'), col: sq.get('col')}, to: dest }
-
-  return ret
 
 _getMovesFrom = (square, board) =>
   piece = square.piece
@@ -55,9 +41,9 @@ _getMovesFrom = (square, board) =>
 
         if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
           break
-        sq = board.getSquareAt(nx, ny)
-        sqpiece = sq.get('piece')
-        if sqpiece?.charAt(0) == pieceType
+        sq = board.getSquareAt(nx, ny).toJSON()
+        sqpiece = sq.piece
+        if sqpiece?.charAt(0) == pieceColor
           break
 
         if pieceType == 'K' and len == 1 or
@@ -69,11 +55,45 @@ _getMovesFrom = (square, board) =>
           break
   return ret
 
+_getAllMoves = (whoseTurn, board) =>
+  ret = []
+  for sq in board.get('squares').toJSON()
+    if sq.piece?.charAt(0) == whoseTurn
+      for dest in _getMovesFrom(sq, board)
+        ret.push({frm: sq, to: dest})
+
+  return ret
+
+_isInCheck = (whoseTurn, board) =>
+  kpiece = whoseTurn + 'K'
+  king = board.getSquareOf(kpiece)
+  king = king.toJSON()
+
+  otherTurn = if whoseTurn == 'w' then 'b' else 'w'
+  validMoves = _getAllMoves(otherTurn, board)
+  for move in validMoves
+    if move.to.row == king.row and move.to.col == king.col
+      return true
+  return false
+
+_isLegalMove = (whoseTurn, move, _board) =>
+  board = _board
+  #fromsq = board.getSquareAt(move.frm.row, move.frm.col)
+  frmsq = board.getSquareAt(move.frm.row, move.frm.col)
+  tosq = board.getSquareAt(move.to.row, move.to.col)
+
+  frmpc = frmsq.get('piece')
+  topc = tosq.get('piece')
+  tosq.set('piece', frmpc)
+  frmsq.unset('piece')
+  ret = !_isInCheck(whoseTurn, board)
+  frmsq.set('piece', frmpc)
+  tosq.set('piece', topc)
+  return ret
+
 _validMove = (whoseTurn, board, prvSquare, curSquare) =>
   prvPiece = prvSquare.piece
   curPiece = curSquare.piece
-  console.log('testing valid move')
-  console.log('prv: ' + prvSquare.row + ', ' + prvSquare.col)
   if prvSquare == curSquare
     return false
   if !prvPiece
@@ -83,6 +103,8 @@ _validMove = (whoseTurn, board, prvSquare, curSquare) =>
   if curPiece and curPiece.charAt(0) == whoseTurn
     return false
 
+  if !_isLegalMove(whoseTurn, {frm : prvSquare, to : curSquare}, board)
+    return false
   validMoves = _getMovesFrom(prvSquare, board)
   targetRow = curSquare.row
   targetCol = curSquare.col
@@ -90,3 +112,16 @@ _validMove = (whoseTurn, board, prvSquare, curSquare) =>
     if curSquare.row == move.row and curSquare.col == move.col
       return true
   return false
+
+_getLegalMoves = (whoseTurn, board) =>
+  movelist = []
+  for move in _getAllMoves(whoseTurn, board)
+    if _isLegalMove(whoseTurn, move, board)
+      movelist.push(move)
+  return movelist
+
+_getBestMove = (whoseTurn, board) =>
+  allMoves = _getLegalMoves(whoseTurn, board)
+  ret = allMoves[~~(Math.random() * allMoves.length)]
+  return ret
+

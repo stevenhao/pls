@@ -12,3 +12,8 @@ class root.BoardModel extends Backbone.Model
       row: row
       col: col
     )
+
+  getSquareOf: (piece) ->
+    _.first @get('squares').where(
+      piece: piece
+    )

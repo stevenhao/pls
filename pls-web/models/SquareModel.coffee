@@ -11,5 +11,3 @@ class root.SquareModel extends Backbone.Model
   getSquareId: ->
     # this is coffeescript string interpolation
     return "#{@get('row')}_#{@get('col')}"
-  equals: (oth) ->
-    return @get('row') == oth.get('row') and @get('col') == oth.get('row')

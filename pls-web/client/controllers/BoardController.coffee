@@ -53,10 +53,8 @@ class root.BoardController
   _move: (prvSquare, curSquare) =>
     Meteor.call('validMove', @whoseTurn, @boardModel, prvSquare, curSquare, 
       (err, data) =>
-#        console.log('server response: ' + data)
         if !data
           return
-        console.log('performing move.')
         prvPiece = prvSquare.get('piece')
         curSquare.set('piece', prvPiece)
         prvSquare.unset('piece')
@@ -78,7 +76,6 @@ class root.BoardController
           @_select(curSquare)
 
   _onMove: =>
-    console.log('piece moved!')
     if @whoseTurn == 'w'
       @whoseTurn = 'b'
     else
@@ -90,14 +87,17 @@ class root.BoardController
         (err, data) =>
           if !data
             return
-          console.log('received ' + data)
           frm = @boardModel.getSquareAt(data.frm.row, data.frm.col)
           to = @boardModel.getSquareAt(data.to.row, data.to.col)
-          console.log('frm: ' + frm.get('row') + ',' + frm.get('col'))
-          console.log('to: ' + to.get('row') + ',' + to.get('col'))
           @_move(frm, to)
         )
-      
+    else
+      console.log('your move!')
+      Meteor.call('isInCheck', @whoseTurn, @boardModel,
+        (err, data) =>
+          if data
+            console.log('check!')
+        )
 #  _onRightClickSquare: (curSquare) =>
     
 
