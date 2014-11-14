@@ -17,6 +17,7 @@ class root.BoardController
     @_createBoardView()
     @addPiece = 'wK'
     @whoseTurn = 'w'
+    @computer = 'b'
     
   _createBoardView: =>
     @boardView = new root.BoardView
@@ -38,6 +39,7 @@ class root.BoardController
         squares.add(square)
 
     @boardModel.on 'clickSquare', @_onClickSquare
+    @boardModel.on 'move', @_onMove
 
 
   _deselect: (curSquare) =>
@@ -49,20 +51,19 @@ class root.BoardController
     curSquare.set('selected', true)
 
   _move: (prvSquare, curSquare) =>
-    console.log('calling server to check valid move')
     Meteor.call('validMove', @whoseTurn, @boardModel, prvSquare, curSquare, 
       (err, data) =>
-        console.log('received ' + data)
+#        console.log('server response: ' + data)
         if !data
           return
+        console.log('performing move.')
         prvPiece = prvSquare.get('piece')
         curSquare.set('piece', prvPiece)
         prvSquare.unset('piece')
-        if @whoseTurn == 'w'
-          @whoseTurn = 'b'
-        else
-          @whoseTurn = 'w'
-    )
+
+        @boardModel.trigger('move')
+      )
+
   _onClickSquare: (curSquare) =>
     if @addPiece?
       curSquare.set('piece', @addPiece)
@@ -75,6 +76,27 @@ class root.BoardController
       else
         if curSquare.get('piece') and curSquare.get('piece').charAt(0) == @whoseTurn
           @_select(curSquare)
+
+  _onMove: =>
+    console.log('piece moved!')
+    if @whoseTurn == 'w'
+      @whoseTurn = 'b'
+    else
+      @whoseTurn = 'w'
+
+    if @whoseTurn == @computer
+      console.log('making computer move.')
+      Meteor.call('bestMove', @whoseTurn, @boardModel, 
+        (err, data) =>
+          if !data
+            return
+          console.log('received ' + data)
+          frm = @boardModel.getSquareAt(data.frm.row, data.frm.col)
+          to = @boardModel.getSquareAt(data.to.row, data.to.col)
+          console.log('frm: ' + frm.get('row') + ',' + frm.get('col'))
+          console.log('to: ' + to.get('row') + ',' + to.get('col'))
+          @_move(frm, to)
+        )
       
 #  _onRightClickSquare: (curSquare) =>
     
