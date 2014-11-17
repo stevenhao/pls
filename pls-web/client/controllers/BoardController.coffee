@@ -81,6 +81,18 @@ class root.BoardController
     else
       @whoseTurn = 'w'
 
+    Meteor.call('isMate', @whoseTurn, @boardModel,
+      (err, data) =>
+        if data == 'checkmate'
+          alert('Checkmate!')
+        else if data == 'stalemate'
+          alert('Stalemate!')
+        else
+          console.log('doing next move.')
+          @_nextmove()
+        )
+    
+  _nextmove: =>
     if @whoseTurn == @computer
       console.log('making computer move.')
       Meteor.call('bestMove', @whoseTurn, @boardModel, 
@@ -97,6 +109,10 @@ class root.BoardController
         (err, data) =>
           if data
             console.log('check!')
+        )
+      Meteor.call('distToMate', @whoseTurn, @boardModel,
+        (err, data) =>
+          console.log("mate in #{data}")
         )
 #  _onRightClickSquare: (curSquare) =>
     

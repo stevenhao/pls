@@ -3,12 +3,12 @@
 
 using namespace std;
 
-const int MAXS = 40000000;;
+const int MAXS = 40000000;
 const int dead = 64;
 
 #define repi(i, a) for(typeof((a).begin()) i = (a).begin(), _##i = (a).end(); i != _##i; ++i)
 
-int ans[MAXS]; // #black+white moves till king takes
+char ans[MAXS]; // #black+white moves till king takes
 
 int mask(int K, int Q, int k, int r, int turn) {
   return turn + 2 * (K + 65 * (Q + 65 * (k + 65 * r)));
@@ -148,21 +148,28 @@ void rd(int a) {
 FILE *FIN = fopen("out", "r");
 int main() {
   prec();
-  int i = 0;
-  memset(ans, -2, sizeof(ans));
-  while (fscanf(FIN, "%d", &x) != -1) {
+  memset(ans, -1, sizeof(ans));
+  printf("beginning. to read.\n");
+  fscanf(FIN, "%s", ans);
+  for(int i = 0; i < MAXS; ++i) {
+    ans[i] -= 40;
+  }
+
+  /*while (fscanf(FIN, "%d", &x) != -1) {
     if (x == -1) ++i;
     else {
       ans[x] = i;
     }
-  }
+  }*/
 
   printf("ready.\n");
   while (get()) {
     printf("read %d %d %d %d %d\n", K, Q, k, r, turn);
     int cur = mask(K, Q, k, r, turn);
     printf("mask = %d\n", cur);
-    printf("white mates in %d\n", (ans[cur]) / 2) ;
+    if (ans[cur] >= 0) {
+      printf("white mates in %d\n", (ans[cur]) / 2) ;
+    }
     vector<int> conn;
     compto(K, Q, k, r, turn, conn);
     printf("comp'd.\n");

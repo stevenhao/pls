@@ -3,14 +3,14 @@
 
 using namespace std;
 
-const int MAXS = 40000000;;
+const int MAXS = 40000000;
 const int dead = 64;
 
 #define pprintf(args...) fprintf(FOUT, args)  //, printf("logging "args);
 #define repi(i, a) for(typeof((a).begin()) i = (a).begin(), _##i = (a).end(); i != _##i; ++i)
 int deg[MAXS];
 int vis[MAXS]; // vis[state] <-> #moves from state s.t. state is winning for white
-int ans[MAXS]; // #black+white moves till king takes
+char ans[MAXS]; // #black+white moves till king takes
 
 int K, Q, k, r, turn;
 // turn = 0 -> black to move
@@ -153,6 +153,7 @@ bool ismate(int msk) {
 
 FILE *FOUT = fopen("out", "w");
 int main() {
+  memset(ans, -1, sizeof(ans));
   printf("precomputing 1.\n");
   prec();
   printf("done precomputing 1.\n");
@@ -225,13 +226,16 @@ int main() {
         }
       }
       ans[*cur] = i;
-      pprintf("%d ", *cur);
+//      pprintf("%d ", *cur);
     }
-    pprintf("-1\n");
+//    pprintf("-1\n");
     v = nv;
     printf("done with %d.\n", i);
   }
 
+  for(int i = 0; i < MAXS; ++i) {
+    pprintf("%c", ans[i] + 40);
+  }
   printf("done with all.\n");
   return 0;
 }

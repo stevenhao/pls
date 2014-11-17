@@ -1,6 +1,8 @@
 root = exports ? this
 
 
+
+
 if (Meteor.isServer)
   Meteor.methods(
     validMove: (whoseTurn, _board, prvSquare, curSquare) =>
@@ -17,9 +19,29 @@ if (Meteor.isServer)
       board = new root.BoardModel(_board)
       board.set('squares', new Backbone.Collection(board.get('squares')))
       return _isInCheck(whoseTurn, board)
+
+    isMate: (whoseTurn, _board) =>
+      #returns "checkmate", "stalemate", or "not mate"
+      board = new root.BoardModel(_board)
+      board.set('squares', new Backbone.Collection(board.get('squares')))
+      ischeck = _isInCheck(whoseTurn, board)
+      legalmoves = _getLegalMoves(whoseTurn, board)
+      if legalmoves.length == 0
+        if ischeck
+          return "checkmate"
+        else
+          return "stalemate"
+      else
+        return "not mate"
+
+    distToMate: (whoseTurn, _board) =>
+      console.log('computing dist to mate.')
+      board = new root.BoardModel(_board)
+      board.set('squares', new Backbone.Collection(board.get('squares')))
+      return _movesTillMate(whoseTurn, board)
   )
 
-
+  
 
 
 _getMovesFrom = (square, board) =>
@@ -120,8 +142,101 @@ _getLegalMoves = (whoseTurn, board) =>
       movelist.push(move)
   return movelist
 
-_getBestMove = (whoseTurn, board) =>
+_getRandomMove = (whoseTurn, board) =>
   allMoves = _getLegalMoves(whoseTurn, board)
   ret = allMoves[~~(Math.random() * allMoves.length)]
   return ret
 
+"""
+AI PART
+ """
+
+
+_hashSquare = (square) =>
+  if square
+    return 8 * square.get('row') + square.get('col')
+  else
+    return 64
+
+_read = (whoseTurn, board) =>
+  return {
+    turn: if whoseTurn == 'w' then 1 else 0
+    K: _hashSquare(board.getSquareOf('wK'))
+    Q: _hashSquare(board.getSquareOf('wQ'))
+    k: _hashSquare(board.getSquareOf('bK'))
+    r: _hashSquare(board.getSquareOf('bR'))
+  }
+
+ai = ""
+_mask = (K, Q, k, r, turn) =>
+  return turn + 2 * (K + 65 * (Q + 65 * (k + 65 * r)))
+
+_movesTillMate = (whoseTurn, board) =>
+  loc = _read(whoseTurn, board)
+  mask = _mask(loc.K, loc.Q, loc.k, loc.r, loc.turn)
+  
+  ans = ai.charCodeAt(mask) - 40
+  if ans == -1
+    ans = 200
+
+  return ans
+
+_getBestMove = (whoseTurn, board) =>
+  console.log('finding best move.')
+  allMoves = _getLegalMoves(whoseTurn, board)
+  otherTurn = if whoseTurn == 'b' then 'w' else 'b'
+  goodMoves = []
+  bestDist = if whoseTurn == 'b' then 0 else 200
+  for move in allMoves
+    frmsq = board.getSquareAt(move.frm.row, move.frm.col)
+    tosq = board.getSquareAt(move.to.row, move.to.col)
+    frmpc = frmsq.get('piece')
+    topc = tosq.get('piece')
+    tosq.set('piece', frmpc)
+    frmsq.unset('piece')
+    cur = _movesTillMate(otherTurn, board)
+    if cur == -1
+      cur = 200
+    if (whoseTurn == 'b' and cur > bestDist) or (whoseTurn == 'w' and cur < bestDist)
+      bestDist = cur
+      goodMoves = []
+    if cur == bestDist
+      goodMoves.push(move)
+    frmsq.set('piece', frmpc)
+    tosq.set('piece', topc)
+  console.log("found #{goodMoves.length} moves which are dist of #{bestDist}")
+  return goodMoves[~~(Math.random() * goodMoves.length)]
+
+_parse = (mask) =>
+  turn = mask % 2
+  mask /= 2
+  K = mask % 65
+  mask /= 65
+  Q = mask % 65
+  mask /= 65
+  k = mask % 65
+  mask /= 65
+  r = mask
+  return {
+    turn: turn
+    K: K
+    Q: Q
+    k: k
+    r: r
+  }
+
+_loadAI = () =>
+  console.log('here.')
+  fs.readFile('../../../../../../ai/KQkr', (err, data) =>
+    console.log('reading file.')
+    if err
+      console.log('error: ' + err)
+      return
+    console.log('read data:' + data.length + ' characters')
+    cur = 0
+    ai = "" + data
+    console.log('done processing data')
+    )
+
+fs = Npm.require('fs')
+_loadAI()
