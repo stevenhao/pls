@@ -39,9 +39,13 @@ if (Meteor.isServer)
       board = new root.BoardModel(_board)
       board.set('squares', new Backbone.Collection(board.get('squares')))
       return _movesTillMate(whoseTurn, board)
+
+    randomBoard: =>
+      return _randomBoard()
   )
 
-  
+_rand = (lim) =>
+  return ~~(Math.random() * lim)
 
 
 _getMovesFrom = (square, board) =>
@@ -144,7 +148,7 @@ _getLegalMoves = (whoseTurn, board) =>
 
 _getRandomMove = (whoseTurn, board) =>
   allMoves = _getLegalMoves(whoseTurn, board)
-  ret = allMoves[~~(Math.random() * allMoves.length)]
+  ret = allMoves[rand(allMoves.length)]
   return ret
 
 """
@@ -154,17 +158,21 @@ AI PART
 
 _hashSquare = (square) =>
   if square
-    return 8 * square.get('row') + square.get('col')
+    return 8 * square.row + square.col
   else
     return 64
 
 _read = (whoseTurn, board) =>
+  h = (s) =>
+    
+    _hashSquare(if s then {row: s.get('row'), col: s.get('col')} else null)
+
   return {
     turn: if whoseTurn == 'w' then 1 else 0
-    K: _hashSquare(board.getSquareOf('wK'))
-    Q: _hashSquare(board.getSquareOf('wQ'))
-    k: _hashSquare(board.getSquareOf('bK'))
-    r: _hashSquare(board.getSquareOf('bR'))
+    K: h(board.getSquareOf('wK'))
+    Q: h(board.getSquareOf('wQ'))
+    k: h(board.getSquareOf('bK'))
+    r: h(board.getSquareOf('bR'))
   }
 
 ai = ""
@@ -226,17 +234,43 @@ _parse = (mask) =>
   }
 
 _loadAI = () =>
-  console.log('here.')
-  fs.readFile('../../../../../../ai/KQkr', (err, data) =>
-    console.log('reading file.')
-    if err
-      console.log('error: ' + err)
-      return
-    console.log('read data:' + data.length + ' characters')
-    cur = 0
-    ai = "" + data
-    console.log('done processing data')
-    )
+  console.log('loading ai.')
+  ai = Meteor.http.get('http://mit.edu/hsteven/Public/KQkr.txt').content
+  console.log('loaded ai.')
 
 fs = Npm.require('fs')
 _loadAI()
+
+
+
+
+# generate random starting position
+
+_valid = (K, Q, k, r) =>
+  h = (a, b) =>
+    return !(a.row == b.row and a.col == b.col)
+  return h(K, Q) and h(K, k) and h(K, r) and h(Q, k) and h(Q, r) and h(k, r)
+
+_randomSquare = =>
+  return {row: _rand(8), col: _rand(8)}
+
+_randomBoard =  =>
+  h = _hashSquare
+  for i in _.range(100)
+    K = _randomSquare()
+    Q = _randomSquare()
+    k = _randomSquare()
+    r = _randomSquare()
+    console.log("trying K: #{K.row}, #{K.col}")
+    if _valid(K, Q, k, r)
+      console.log('valid')
+      mask = _mask(h(K), h(Q), h(k), h(r), 1)
+      console.log("mask = #{mask}")
+      ans = ai.charCodeAt(mask) - 40
+      console.log("dist is #{ans}")
+      if ans >= 40
+        return {K: K, Q: Q, k: k, r: r}
+    else
+      console.log('invalid')
+
+

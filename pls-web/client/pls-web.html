@@ -3,17 +3,19 @@
 </head>
 
 <body>
-  {{> hello}}
-  Yo this is my chess board
+  {{> top}}
   {{> chessBoard}}
 </body>
 
-<template name="hello">
+<template name="top">
   <marquee>
   	<h1>Steven Steven Steven</h1>
   </marquee>
   {{greeting}}
-  <input type="button" value="Click" />
+  <input class="color-selector" type="checkbox" name="w"> Computer plays white <br>
+  <input class="color-selector" type="checkbox" name="b" checked="checked"> Computer plays black <br>
+  <input class="go-button" type="button" value="Go!">
+  <input class="reset-button" type="button" value="Random!">
 </template>
 
 <template name="chessBoard">

@@ -148,7 +148,7 @@ vector<int> fin[200];
 
 bool ismate(int msk) {
   int othmsk = msk ^ 1;
-  return vis[othmsk]; // must be check
+  return ans[othmsk] == 1; // must be check
 }
 
 FILE *FOUT = fopen("out", "w");
@@ -182,9 +182,9 @@ int main() {
   printf("precomputing 3.\n");
   vector<int> v;
   for(int r = 64; r >= 0; --r) {
-  for(int K = 0; K < 65; ++K) {
-    for(int Q = 0; Q < 65; ++Q) {
-      for(int k = 0; k < 65; ++k) {
+    for(int K = 0; K < 65; ++K) {
+      for(int Q = 0; Q < 65; ++Q) {
+        for(int k = 0; k < 65; ++k) {
           if (!valid(K, Q, k, r)) continue;
           for(int turn = 0; turn < 2; ++turn) {
             int msk = mask(K, Q, k, r, turn);
@@ -205,6 +205,11 @@ int main() {
     printf("%d win states.\n", int(v.size()));
     vector<int> nv;
     repi(cur, v) {
+      if (*cur == 35416754) {
+        printf("i = %d, cur = %d\n", i, 35416754);
+        printf("ismate = %d\n", ismate(*cur));
+      }
+
       if (i == 2 && !ismate(*cur)) {
         continue;
       }
