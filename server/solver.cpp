@@ -11,17 +11,17 @@ const int dead = 64;
 char ans[MAXS]; // #black+white moves till king takes
 
 int mask(int K, int Q, int k, int r, int turn) {
-  return turn + 2 * (K + 65 * (Q + 65 * (k + 65 * r)));
+  return turn + 2 * (r + 65 * (k + 65 * (Q + 65 * K)));
 }
 
 int K, Q, k, r, turn;
 
 void read(int msk) {
   turn = msk % 2; msk /= 2;
-  K = msk % 65; msk /= 65;
-  Q = msk % 65; msk /= 65;
+  r = msk % 65; msk /= 65;
   k = msk % 65; msk /= 65;
-  r = msk;
+  Q = msk % 65; msk /= 65;
+  K = msk;
 }
 
 bool issq(int x, int y) {
@@ -146,14 +146,32 @@ void rd(int a) {
 
 
 FILE *FIN = fopen("out", "r");
+int cnts[200];
 int main() {
   prec();
   memset(ans, -1, sizeof(ans));
   printf("beginning. to read.\n");
   fscanf(FIN, "%s", ans);
+
+  int mxcnt = 10000;
   for(int i = 0; i < MAXS; ++i) {
     ans[i] -= 40;
+    ++cnts[ans[i] + 1];
+    if (ans[i] > 2 && cnts[ans[i] + 1] > mxcnt) {
+      mxcnt = cnts[ans[i] + 1];
+    }
   }
+
+  for(int i = 0; i < 100; ++i) {
+    printf("%d:\t%07d\t", i, cnts[i + 1]);
+    int len = cnts[i + 1];
+    len = (float(len) * 150) / mxcnt;
+    for(int j = 0; j < len; ++j) {
+      printf(".");
+    }
+    printf("\n");
+  }
+
 
   /*while (fscanf(FIN, "%d", &x) != -1) {
     if (x == -1) ++i;

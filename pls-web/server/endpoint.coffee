@@ -10,6 +10,11 @@ if (Meteor.isServer)
       board.set('squares', new Backbone.Collection(board.get('squares')))
       return _validMove(whoseTurn, board, prvSquare, curSquare)
 
+    getValidMoves: (whoseTurn, _board, prvSquare, curSquare) =>
+      board = new root.BoardModel(_board)
+      board.set('squares', new Backbone.Collection(board.get('squares')))
+      return _getLegalMoves(whoseTurn, board, prvSquare, curSquare)
+
     bestMove: (whoseTurn, _board) =>
       board = new root.BoardModel(_board)
       board.set('squares', new Backbone.Collection(board.get('squares')))
@@ -177,7 +182,7 @@ _read = (whoseTurn, board) =>
 
 ai = ""
 _mask = (K, Q, k, r, turn) =>
-  return turn + 2 * (K + 65 * (Q + 65 * (k + 65 * r)))
+  return turn + 2 * (r + 65 * (k + 65 * (Q + 65 * K)))
 
 _movesTillMate = (whoseTurn, board) =>
   loc = _read(whoseTurn, board)
@@ -218,13 +223,13 @@ _getBestMove = (whoseTurn, board) =>
 _parse = (mask) =>
   turn = mask % 2
   mask /= 2
-  K = mask % 65
-  mask /= 65
-  Q = mask % 65
+  r = mask % 65
   mask /= 65
   k = mask % 65
   mask /= 65
-  r = mask
+  Q = mask % 65
+  mask /= 65
+  K = mask
   return {
     turn: turn
     K: K
@@ -233,13 +238,26 @@ _parse = (mask) =>
     r: r
   }
 
-_loadAI = () =>
-  console.log('loading ai.')
+_loadAIWeb = () =>
+  console.log('loading ai from web.')
   ai = Meteor.http.get('http://mit.edu/hsteven/Public/KQkr.txt').content
   console.log('loaded ai.')
 
+_loadAILocal = () =>
+  console.log('loading ai locally.')
+  fs.readFile('../../../../../ai/KQkr', (err, data) =>
+    console.log('reading file.')
+    if err
+      console.log('error: ' + err)
+      return
+    ai = "" + data
+    )
+  console.log('loaded ai.')
+
+
 fs = Npm.require('fs')
-_loadAI()
+#_loadAIWeb()
+_loadAILocal()
 
 
 

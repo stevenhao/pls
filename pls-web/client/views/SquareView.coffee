@@ -18,6 +18,7 @@ class root.SquareView extends Backbone.View
   initialize: ({@model, @boardModel}) ->
     @model.on 'change:selected', @_onChangeSelected
     @model.on 'change:piece', @_onChangePiece
+    @model.on 'change:validMove', @_onChangeValidMove
 
   render: =>
     @$el.attr('id', "square#{@model.getSquareId()}")
@@ -25,6 +26,10 @@ class root.SquareView extends Backbone.View
 
   _onChangeSelected: =>
     @$el.toggleClass('selected', @model.get('selected'))
+
+  _onChangeValidMove: =>
+    console.log('changing valid move.')
+    @$el.toggleClass('validMove', @model.get('validMove'))
 
   _onChangePiece: =>
     piece = @model.get('piece')

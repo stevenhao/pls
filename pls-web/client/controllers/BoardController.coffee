@@ -17,6 +17,8 @@ class root.BoardController
     @_createBoardView()
     @addPiece = 'wK'
     @whoseTurn = 'w'
+    @curSelected = null
+    @validMoves = []
     @computer = {
       'w': 0
       'b': 1
@@ -58,19 +60,27 @@ class root.BoardController
     @computer[checkbox.attr('name')] = checkbox.attr('checked')
     console.log("computer[#{checkbox.attr('name')}] = #{if checkbox.attr('checked') then true else false}")
 
+  _deselect: =>
+    @curSelected.set('selected', false)
+    @curSelected = null
+    @boardModel.get('squares').each (sq) =>
+      sq.set('validMove', false)
 
-  _deselect: (curSquare) =>
-    @boardModel.unset('selectedSquare')
-    curSquare.set('selected', false)
 
   _select: (curSquare) =>
-    @boardModel.set('selectedSquare', curSquare)
     curSquare.set('selected', true)
+    @curSelected = curSquare
+    _.each @validMoves, (mv) =>
+      r = mv.to.row
+      c = mv.to.col
+      if mv.frm.row == curSquare.get('row') and mv.frm.col == curSquare.get('col')
+        @boardModel.getSquareAt(r, c).set('validMove', true)
 
   _move: (prvSquare, curSquare) =>
     Meteor.call('validMove', @whoseTurn, @boardModel, prvSquare, curSquare, 
       (err, data) =>
         if !data
+          console.log('illegal move.')
           return
         prvPiece = prvSquare.get('piece')
         curSquare.set('piece', prvPiece)
@@ -85,10 +95,11 @@ class root.BoardController
       @addPiece = root.BoardController.next[@addPiece]
       @_checkState()
     else
-      prvSquare = @boardModel.get('selectedSquare')
+      prvSquare = @curSelected
       if prvSquare
-        @_deselect(prvSquare)
-        @_move(prvSquare, curSquare)
+        @_deselect()
+        if prvSquare != curSquare
+          @_move(prvSquare, curSquare)
       else
         if curSquare.get('piece') and curSquare.get('piece').charAt(0) == @whoseTurn
           @_select(curSquare)
@@ -98,7 +109,6 @@ class root.BoardController
       @whoseTurn = 'b'
     else
       @whoseTurn = 'w'
-
     Meteor.call('isMate', @whoseTurn, @boardModel,
       (err, data) =>
         if data == 'checkmate'
@@ -138,6 +148,10 @@ class root.BoardController
       console.log('clearing.')
       @boardModel.get('squares').each (p) =>
         p.unset('piece')
+        p.set('validMove', false)
+        p.set('selected', false)
+      @curSelected = false
+      @validMoves = []
       @addPiece = 'wK'
       @_checkState()
 
@@ -150,7 +164,13 @@ class root.BoardController
     if !@addPiece
       @_nextmove()
 
-  _nextmove: =>
+  _nextmove: =>    
+    Meteor.call('getValidMoves', @whoseTurn, @boardModel, @curSelected,
+      (err, data) =>
+        console.log('got valid moves')
+        @validMoves = data
+      )
+
     if @computer[@whoseTurn]
       @_compmove()
     else

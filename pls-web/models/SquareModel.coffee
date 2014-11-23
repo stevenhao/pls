@@ -6,6 +6,7 @@ class root.SquareModel extends Backbone.Model
     row: 0
     col: 0
     selected: false
+    validMove: false
     piece: null
 
   getSquareId: ->

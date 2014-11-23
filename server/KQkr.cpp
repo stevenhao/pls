@@ -18,14 +18,14 @@ int K, Q, k, r, turn;
 
 void read(int state) {
   turn = state % 2; state /= 2;
-  K = state % 65; state /= 65;
-  Q = state % 65; state /= 65;
+  r = state % 65; state /= 65;
   k = state % 65; state /= 65;
-  r = state;
+  Q = state % 65; state /= 65;
+  K = state;
 }
 
 int mask(int K, int Q, int k, int r, int turn) {
-  return turn + 2 * (K + 65 * (Q + 65 * (k + 65 * r)));
+  return turn + 2 * (r + 65 * (k + 65 * (Q + 65 * K)));
 }
 
 bool valid(int K, int Q, int k, int r) {
