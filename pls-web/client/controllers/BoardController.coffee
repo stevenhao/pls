@@ -67,27 +67,34 @@ class root.BoardController
       sq.set('validMove', false)
 
 
-  _select: (curSquare) =>
+  _select: (curSquare) =>    
+    eq = (a, b) =>
+      return a.get('row') == b.row and a.get('col') == b.col
     curSquare.set('selected', true)
     @curSelected = curSquare
     _.each @validMoves, (mv) =>
       r = mv.to.row
       c = mv.to.col
-      if mv.frm.row == curSquare.get('row') and mv.frm.col == curSquare.get('col')
+      if eq(curSquare, mv.frm)
         @boardModel.getSquareAt(r, c).set('validMove', true)
 
-  _move: (prvSquare, curSquare) =>
-    Meteor.call('validMove', @whoseTurn, @boardModel, prvSquare, curSquare, 
-      (err, data) =>
-        if !data
-          console.log('illegal move.')
-          return
-        prvPiece = prvSquare.get('piece')
-        curSquare.set('piece', prvPiece)
-        prvSquare.unset('piece')
+  _validMove: (prvSquare, curSquare) =>
+    eq = (a, b) =>
+      return a.get('row') == b.row and a.get('col') == b.col
+    ret = false
+    _.each @validMoves, (mv) =>
+      if eq(prvSquare, mv.frm) and eq(curSquare, mv.to)
+        ret = true
+    return ret
 
-        @boardModel.trigger('move')
-      )
+  _move: (prvSquare, curSquare) =>
+    if @_validMove(prvSquare, curSquare)
+      prvPiece = prvSquare.get('piece')
+      curSquare.set('piece', prvPiece)
+      prvSquare.unset('piece')
+      @boardModel.trigger('move')
+    else
+      console.log('illegal move')
 
   _onClickSquare: (curSquare) =>
     if @addPiece

@@ -28,7 +28,6 @@ class root.SquareView extends Backbone.View
     @$el.toggleClass('selected', @model.get('selected'))
 
   _onChangeValidMove: =>
-    console.log('changing valid move.')
     @$el.toggleClass('validMove', @model.get('validMove'))
 
   _onChangePiece: =>
