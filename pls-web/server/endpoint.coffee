@@ -45,8 +45,8 @@ if (Meteor.isServer)
       board.set('squares', new Backbone.Collection(board.get('squares')))
       return _movesTillMate(whoseTurn, board)
 
-    randomBoard: =>
-      return _randomBoard()
+    randomBoard: (mode) =>
+      return _randomBoard(mode)
   )
 
 _rand = (lim) =>
@@ -84,6 +84,22 @@ _getMovesFrom = (square, board) =>
 
         if sqpiece
           break
+
+  if pieceType == 'N'
+    for dx in _.range(-2, 3)
+      for dy in _.range(-2, 3)
+        if dx * dy == 2 or dx * dy == -2
+          nx = x + dx
+          ny = y + dy 
+
+          if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
+            break
+          sq = board.getSquareAt(nx, ny).toJSON()
+          sqpiece = sq.piece
+          if sqpiece?.charAt(0) == pieceColor
+            break
+          ret.push({row: nx, col: ny})
+
   return ret
 
 _getAllMoves = (whoseTurn, board) =>
@@ -180,15 +196,20 @@ _read = (whoseTurn, board) =>
     r: h(board.getSquareOf('bR'))
   }
 
-ai = ""
+ai = {}
 _mask = (K, Q, k, r, turn) =>
   return turn + 2 * (r + 65 * (k + 65 * (Q + 65 * K)))
 
 _movesTillMate = (whoseTurn, board) =>
   loc = _read(whoseTurn, board)
-  mask = _mask(loc.K, loc.Q, loc.k, loc.r, loc.turn)
-  
-  ans = ai.charCodeAt(mask) - 40
+  if !loc.n
+    mode = 'KQkr'
+    console.log("mode: #{mode}")
+    mask = _mask(loc.K, loc.Q, loc.k, loc.r, loc.turn)
+    ans = ai[mode].charCodeAt(mask) - 40
+  else if !loc.r
+    mode = 'KQkn'
+    ans = -1
   if ans == -1
     ans = 200
 
@@ -220,24 +241,6 @@ _getBestMove = (whoseTurn, board) =>
   console.log("found #{goodMoves.length} moves which are dist of #{bestDist}")
   return goodMoves[~~(Math.random() * goodMoves.length)]
 
-_parse = (mask) =>
-  turn = mask % 2
-  mask /= 2
-  r = mask % 65
-  mask /= 65
-  k = mask % 65
-  mask /= 65
-  Q = mask % 65
-  mask /= 65
-  K = mask
-  return {
-    turn: turn
-    K: K
-    Q: Q
-    k: k
-    r: r
-  }
-
 _loadAIWeb = () =>
   console.log('loading ai from web.')
   ai = Meteor.http.get('http://mit.edu/hsteven/Public/KQkr.txt').content
@@ -250,7 +253,7 @@ _loadAILocal = () =>
     if err
       console.log('error: ' + err)
       return
-    ai = "" + data
+    ai['KQkr'] = "" + data
     )
   console.log('loaded ai.')
 
@@ -264,31 +267,48 @@ _loadAILocal()
 
 # generate random starting position
 
-_valid = (K, Q, k, r) =>
+_valid = (a, b, c, d) =>
   h = (a, b) =>
     return !(a.row == b.row and a.col == b.col)
-  return h(K, Q) and h(K, k) and h(K, r) and h(Q, k) and h(Q, r) and h(k, r)
+  return h(a, b) and h(a, c) and h(a, d) and h(b, c) and h(b, d) and h(c, d)
 
 _randomSquare = =>
   return {row: _rand(8), col: _rand(8)}
 
-_randomBoard =  =>
+_randomBoard = (mode) =>
   h = _hashSquare
-  for i in _.range(100)
-    K = _randomSquare()
-    Q = _randomSquare()
-    k = _randomSquare()
-    r = _randomSquare()
-    console.log("trying K: #{K.row}, #{K.col}")
-    if _valid(K, Q, k, r)
-      console.log('valid')
-      mask = _mask(h(K), h(Q), h(k), h(r), 1)
-      console.log("mask = #{mask}")
-      ans = ai.charCodeAt(mask) - 40
-      console.log("dist is #{ans}")
-      if ans >= 40
-        return {K: K, Q: Q, k: k, r: r}
-    else
-      console.log('invalid')
+  if mode == 'KQkr'
+    for i in _.range(100)
+      K = _randomSquare()
+      Q = _randomSquare()
+      k = _randomSquare()
+      r = _randomSquare()
+      if _valid(K, Q, k, r)
+        console.log('valid')
+        mask = _mask(h(K), h(Q), h(k), h(r), 1)
+        console.log("mask = #{mask}")
+        ans = ai[mode].charCodeAt(mask) - 40
+        console.log("dist is #{ans}")
+        if ans >= 40
+          return {K: K, Q: Q, k: k, r: r}
+      else
+        console.log('invalid')
+  else if mode == 'KQkn'
+    for i in _.range(100)
+      K = _randomSquare()
+      Q = _randomSquare()
+      k = _randomSquare()
+      n = _randomSquare()
+      if _valid(K, Q, k, n)
+        console.log('valid')
+        mask = _mask(h(K), h(Q), h(k), h(n), 1)
+        console.log("mask = #{mask}")
+        return {K: K, Q: Q, k: k, n: n}
+        # ans = ai[mode].charCodeAt(mask) - 40
+        # console.log("dist is #{ans}")
+        # if ans >= 40
+          # return {K: K, Q: Q, k: k, r: r}
+      else
+        console.log('invalid')
 
 

@@ -7,11 +7,8 @@ root = exports ? this
 # the root object, which is accessible in all other files that
 # have the `root = exports ? this` line.
 class root.BoardController
-  @next:
-    'wK': 'wQ'
-    'wQ': 'bK'
-    'bK': 'bR'
-    'bR': null
+
+
   initialize: ->
     @_setUpBoardModel()
     @_createBoardView()
@@ -22,7 +19,20 @@ class root.BoardController
     @computer = {
       'w': 0
       'b': 1
-    }
+    }  
+    
+    @next = 
+      'KQkr':
+        'wK': 'wQ'
+        'wQ': 'bK'
+        'bK': 'bR'
+        'bR': null
+      'KQkn':
+        'wK': 'wQ'
+        'wQ': 'bK'
+        'bK': 'bN'
+        'bN': null
+    @mode = 'KQkn'
 
     $('.color-selector').on('click', @_onColorSelected)
     $('.go-button').on('click', @_compmove)
@@ -99,7 +109,7 @@ class root.BoardController
   _onClickSquare: (curSquare) =>
     if @addPiece
       curSquare.set('piece', @addPiece)
-      @addPiece = root.BoardController.next[@addPiece]
+      @addPiece = @next[@mode][@addPiece]
       @_checkState()
     else
       prvSquare = @curSelected
@@ -137,16 +147,19 @@ class root.BoardController
       )
 
   _reset: =>
+    put = (square, piece) =>
+      if square
+        @boardModel.getSquareAt(square.row, square.col).set('piece', piece)
     if @addPiece == 'wK'
       console.log('randomizing.')
-      Meteor.call('randomBoard',
+      Meteor.call('randomBoard', @mode
         (err, data) =>
           if data
-            @boardModel.getSquareAt(data.K.row, data.K.col).set('piece', 'wK')
-            @boardModel.getSquareAt(data.Q.row, data.Q.col).set('piece', 'wQ')
-            @boardModel.getSquareAt(data.k.row, data.k.col).set('piece', 'bK')
-            @boardModel.getSquareAt(data.r.row, data.r.col).set('piece', 'bR')
-            @whoseTurn = 'w'
+            put(data.K, 'wK')
+            put(data.Q, 'wQ')
+            put(data.k, 'bK')
+            put(data.r, 'bR')
+            put(data.n, 'bN')
             @addPiece = null
             console.log('successful.')
             @_checkState()
@@ -160,6 +173,7 @@ class root.BoardController
       @curSelected = false
       @validMoves = []
       @addPiece = 'wK'
+      @whoseTurn = 'w'
       @_checkState()
 
   _checkState: =>

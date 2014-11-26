@@ -8,6 +8,7 @@ class root.SquareView extends Backbone.View
     bK : 'images/bK.png'
     wQ : 'images/wQ.png'
     bR : 'images/bR.png'
+    bN : 'images/bK.png'
   # this is a special Backbone.View property
   className: 'square'
 
