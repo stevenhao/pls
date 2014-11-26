@@ -32,11 +32,12 @@ class root.BoardController
         'wQ': 'bK'
         'bK': 'bN'
         'bN': null
-    @mode = 'KQkn'
+    @mode = 'KQkr'
 
     $('.color-selector').on('click', @_onColorSelected)
     $('.go-button').on('click', @_compmove)
     $('.reset-button').on('click', @_reset)
+    $('.mode-selector').on('click', @_onModeSelected)
 
   _createBoardView: =>
     @boardView = new root.BoardView
@@ -69,6 +70,16 @@ class root.BoardController
 
     @computer[checkbox.attr('name')] = checkbox.attr('checked')
     console.log("computer[#{checkbox.attr('name')}] = #{if checkbox.attr('checked') then true else false}")
+  
+  _onModeSelected: (evt) =>
+    console.log('clicked')
+    button = $(evt.currentTarget)
+    if @mode == 'KQkr'
+      button.attr('value', 'Playing KQkn')
+      @mode = 'KQkn'
+    else
+      button.attr('value', 'Playing KQkr')
+      @mode = 'KQkr'
 
   _deselect: =>
     @curSelected.set('selected', false)

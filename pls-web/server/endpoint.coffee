@@ -93,11 +93,11 @@ _getMovesFrom = (square, board) =>
           ny = y + dy 
 
           if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
-            break
+            continue
           sq = board.getSquareAt(nx, ny).toJSON()
           sqpiece = sq.piece
           if sqpiece?.charAt(0) == pieceColor
-            break
+            continue
           ret.push({row: nx, col: ny})
 
   return ret
@@ -194,6 +194,7 @@ _read = (whoseTurn, board) =>
     Q: h(board.getSquareOf('wQ'))
     k: h(board.getSquareOf('bK'))
     r: h(board.getSquareOf('bR'))
+    n: h(board.getSquareOf('bN'))
   }
 
 ai = {}
@@ -202,14 +203,16 @@ _mask = (K, Q, k, r, turn) =>
 
 _movesTillMate = (whoseTurn, board) =>
   loc = _read(whoseTurn, board)
-  if !loc.n
+  if loc.n == 64
     mode = 'KQkr'
-    console.log("mode: #{mode}")
     mask = _mask(loc.K, loc.Q, loc.k, loc.r, loc.turn)
     ans = ai[mode].charCodeAt(mask) - 40
-  else if !loc.r
+  else if loc.r == 64
     mode = 'KQkn'
-    ans = -1
+    mask = _mask(loc.K, loc.Q, loc.k, loc.n, loc.turn)
+    ans = ai[mode].charCodeAt(mask) - 40
+
+  console.log("mode: #{mode}")
   if ans == -1
     ans = 200
 
@@ -229,8 +232,7 @@ _getBestMove = (whoseTurn, board) =>
     tosq.set('piece', frmpc)
     frmsq.unset('piece')
     cur = _movesTillMate(otherTurn, board)
-    if cur == -1
-      cur = 200
+
     if (whoseTurn == 'b' and cur > bestDist) or (whoseTurn == 'w' and cur < bestDist)
       bestDist = cur
       goodMoves = []
@@ -243,24 +245,35 @@ _getBestMove = (whoseTurn, board) =>
 
 _loadAIWeb = () =>
   console.log('loading ai from web.')
-  ai = Meteor.http.get('http://mit.edu/hsteven/Public/KQkr.txt').content
+  ai['KQkr'] = Meteor.http.get('http://mit.edu/hsteven/Public/KQkr.txt').content
+  console.log('KQkr loaded')
+  ai['KQkn'] = Meteor.http.get('http://mit.edu/hsteven/Public/KQkn.txt').content
+  console.log('KQkn loaded')
   console.log('loaded ai.')
 
 _loadAILocal = () =>
   console.log('loading ai locally.')
-  fs.readFile('../../../../../ai/KQkr', (err, data) =>
-    console.log('reading file.')
+  fs.readFile('../../../../../../AI/files/KQkr', (err, data) =>
+    console.log('reading KQkr.')
     if err
       console.log('error: ' + err)
       return
     ai['KQkr'] = "" + data
+    console.log('done reading KQkr.')
+    )  
+  fs.readFile('../../../../../../AI/files/KQkn', (err, data) =>
+    console.log('reading KQkn.')
+    if err
+      console.log('error: ' + err)
+      return
+    ai['KQkn'] = "" + data
+    console.log('done reading KQkn.')
     )
-  console.log('loaded ai.')
 
 
 fs = Npm.require('fs')
-#_loadAIWeb()
-_loadAILocal()
+_loadAIWeb()
+#_loadAILocal()
 
 
 
@@ -303,11 +316,10 @@ _randomBoard = (mode) =>
         console.log('valid')
         mask = _mask(h(K), h(Q), h(k), h(n), 1)
         console.log("mask = #{mask}")
-        return {K: K, Q: Q, k: k, n: n}
-        # ans = ai[mode].charCodeAt(mask) - 40
-        # console.log("dist is #{ans}")
-        # if ans >= 40
-          # return {K: K, Q: Q, k: k, r: r}
+        ans = ai[mode].charCodeAt(mask) - 40
+        console.log("dist is #{ans}")
+        if ans >= 30
+          return {K: K, Q: Q, k: k, n: n}
       else
         console.log('invalid')
 
