@@ -4,6 +4,7 @@
 using namespace std;
 
 const int MAXS = 40000000;
+const int NUMS = 5500000;
 const int dead = 64;
 
 #define pprintf(args...) fprintf(FOUT, args)  //, printf("logging "args);
@@ -11,6 +12,7 @@ const int dead = 64;
 int deg[MAXS];
 int vis[MAXS]; // vis[state] <-> #moves from state s.t. state is winning for white
 char ans[MAXS]; // #black+white moves till king takes
+char _ans[MAXS]; // #black+white moves till king takes
 
 int K, Q, k, r, turn;
 // turn = 0 -> black to move
@@ -26,6 +28,50 @@ void read(int state) {
 
 int mask(int K, int Q, int k, int r, int turn) {
   return turn + 2 * (r + 65 * (k + 65 * (Q + 65 * K)));
+}
+
+void fliph(int &x) {
+  if (x != 64)
+    x += 7 - 2 * (x % 8);
+}
+
+void flipv(int &x) {
+  if (x != 64)
+    x += 56 - 2 * (x - x % 8);
+}
+
+void flipd(int &x) {
+  if (x != 64)
+    x = 8 * (x % 8) + x / 8;
+}
+
+int _mask(int K, int Q, int k, int n, int turn) {
+  int r = K % 8, c = K / 8;
+  if (r >= 4) {
+    fliph(Q); fliph(k); fliph(n);
+    r = 7 - r;
+  }
+
+  if (c >= 4) {
+    flipv(Q);
+    flipv(k);
+    flipv(n);
+    c = 7 - c;
+  }
+
+  if (r > c) {
+    flipd(Q);
+    flipd(k);
+    flipd(n);
+    int _r = r;
+    r = c;
+    c = _r;
+  }
+
+  K = r * (r + 1) / 2 + c;
+  int ret =  turn + 2 * (n + 65 * (k + 65 * (Q + 65 * K)));
+  //printf("ret = %d\n", ret);
+  return ret;
 }
 
 bool valid(int K, int Q, int k, int r) {
@@ -238,8 +284,22 @@ int main() {
     printf("done with %d.\n", i);
   }
 
-  for(int i = 0; i < MAXS; ++i) {
-    pprintf("%c", ans[i] + 40);
+  for(int K = 0; K < 65; ++K) {
+    for(int Q = 0; Q < 65; ++Q) {
+      for(int k = 0; k < 65; ++k) {
+        for(int r = 0; r < 65; ++r) {
+          for(int turn = 0; turn < 2; ++turn) {
+            int omsk = mask(K, Q, k, r, turn);
+            int nmsk = _mask(K, Q, k, r, turn);
+            _ans[nmsk] = ans[omsk];
+          }
+        }
+      }
+    }
+  }
+
+  for(int i = 0; i < NUMS; ++i) {
+    pprintf("%c", _ans[i] + 40);
   }
   printf("done with all.\n");
   return 0;

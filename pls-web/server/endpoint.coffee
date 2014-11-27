@@ -199,17 +199,78 @@ _read = (whoseTurn, board) =>
 
 ai = {}
 _mask = (K, Q, k, r, turn) =>
+  """  int r = K % 8, c = K / 8;
+ 29   if (r >= 4) {
+ 30     fliph(Q); fliph(k); fliph(n);
+ 31     r = 7 - r;
+ 32   }
+ 33 
+ 34   if (c >= 4) {
+ 35     flipv(Q);
+ 36     flipv(k);
+ 37     flipv(n);
+ 38     c = 7 - c;
+ 39   }
+ 40 
+ 41   if (r > c) {
+ 42     flipd(Q);
+ 43     flipd(k);
+ 44     flipd(n);
+ 45     int _r = r;
+ 46     r = c;
+ 47     c = _r;
+ 48   }
+ 49 
+ 50   K = r * (r + 1) / 2 + c;
+ 51   return turn + 2 * (n + 65 * (k + 65 * (Q + 65 * K)));
+"""
+  R = K % 8
+  C = K // 8
+  fliph = (x) =>
+    if x == 64
+      return x
+    return x + 7 - 2 * (x % 8)
+  flipv = (x) =>
+    if x == 64
+      return x
+    return x + 56 - 2 * (x - x % 8)
+  flipd = (x) =>
+    if x == 64
+      return x
+    return 8 * (x % 8) + x // 8
+
+  if R >= 4
+    Q = fliph(Q)
+    k = fliph(k)
+    r = fliph(r)
+    R = 7 - R
+
+  if C >= 4
+    Q = flipv(Q)
+    k = flipv(k)
+    r = flipv(r)
+    C = 7 - C
+
+  if R > C
+    Q = flipd(Q)
+    k = flipd(k)
+    r = flipd(r)
+    _R = R
+    R = C
+    C = _R
+
+  K = R * (R + 1) / 2 + C
   return turn + 2 * (r + 65 * (k + 65 * (Q + 65 * K)))
 
 _movesTillMate = (whoseTurn, board) =>
   loc = _read(whoseTurn, board)
-  if loc.n == 64
-    mode = 'KQkr'
-    mask = _mask(loc.K, loc.Q, loc.k, loc.r, loc.turn)
-    ans = ai[mode].charCodeAt(mask) - 40
-  else if loc.r == 64
+  if loc.r == 64
     mode = 'KQkn'
     mask = _mask(loc.K, loc.Q, loc.k, loc.n, loc.turn)
+    ans = ai[mode].charCodeAt(mask) - 40
+  else if loc.n == 64
+    mode = 'KQkr'
+    mask = _mask(loc.K, loc.Q, loc.k, loc.r, loc.turn)
     ans = ai[mode].charCodeAt(mask) - 40
 
   console.log("mode: #{mode}")
@@ -318,7 +379,7 @@ _randomBoard = (mode) =>
         console.log("mask = #{mask}")
         ans = ai[mode].charCodeAt(mask) - 40
         console.log("dist is #{ans}")
-        if ans >= 30
+        if ans >= 30 or i == 99
           return {K: K, Q: Q, k: k, n: n}
       else
         console.log('invalid')
