@@ -1,13 +1,39 @@
-@dim: 40px;
-
-body {
+@dim: 80px;
+@center-width: 800px;
+@side-bar-width: 300px;
+@totalWidth: 2* @side-bar-width + @center-width;
+body, html {
+  height: 100%;
   // background-image: url('http://cdn.superbwallpapers.com/wallpapers/cartoons/elsa-frozen-25406-400x250.jpg');
 }
 * {
   box-sizing: border-box;
 }
 
+.main-content {
+  height: 100%;
+  margin: 0 auto;
+  width: @totalWidth
+}
+
+.layout-column {
+  height: 100%;
+  display: inline-block;
+  float: left;
+
+  &.side-bar {
+    width: @side-bar-width;
+    border: 1px solid black;
+  }
+}
+
+.center-view {
+  width: @center-width;
+  border: 1px solid black;
+  padding: 10px;
+}
 .chess-board-container {
+  margin: auto;
   width: @dim * 8;
   height: @dim * 8;
   .square {
@@ -50,7 +76,7 @@ body {
     border: 2px solid transparent;
     &.selected {
       border: 2px solid red;
-    }    
+    }
     &.validMove {
       border: 2px solid yellow;
     }

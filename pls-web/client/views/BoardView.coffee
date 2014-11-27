@@ -10,7 +10,7 @@ class root.BoardView extends Backbone.View
   _buildBoard: =>
     for row in _.range(8)
       rowEl = $ '<div/>',
-        class: 'row'
+        class: 'board-row'
         id: "row#{row}"
       for col in _.range(8)
         squareModel = @model.getSquareAt(row, col)

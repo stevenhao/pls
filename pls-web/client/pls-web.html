@@ -3,22 +3,31 @@
 </head>
 
 <body>
-  {{> top}}
-  {{> chessBoard}}
+  <div class="main-content">
+    {{> leftSideBar}}
+    {{> centerView}}
+    {{> rightSideBar}}
+  </div>
 </body>
 
-<template name="top">
-  <marquee>
-  	<h1>Steven Steven Steven</h1>
-  </marquee>
-  {{greeting}}
-  <input class="color-selector" type="checkbox" name="w"> Computer plays white <br>
-  <input class="color-selector" type="checkbox" name="b" checked="checked"> Computer plays black <br>
-  <input class="go-button" type="button" value="Go!">
-  <input class="reset-button" type="button" value="Random!">
-  <input class="mode-selector" type="button" value="Playing KQkr">
+<template name="leftSideBar">
+  <div class="left-side-bar layout-column side-bar">
+    <input class="go-button" type="button" value="Go!">
+    <input class="reset-button" type="button" value="Random!">
+    <input class="mode-selector" type="button" value="Playing KQkr">
+  </div>
 </template>
 
-<template name="chessBoard">
-  <div class="chess-board-container">hello</div>
+<template name="centerView">
+  <div class="center-view layout-column">
+    <div class="chess-board-container">
+    </div>
+  </div>
+</template>
+
+<template name="rightSideBar">
+  <div class="right-side-bar layout-column side-bar">
+    <input class="color-selector" type="checkbox" name="w"> Computer plays white <br>
+    <input class="color-selector" type="checkbox" name="b" checked="checked"> Computer plays black <br>
+  </div>
 </template>

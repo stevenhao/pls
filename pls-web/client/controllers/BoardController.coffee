@@ -11,17 +11,17 @@ class root.BoardController
 
   initialize: ->
     @_setUpBoardModel()
+    @_setUpBoardViewModel()
     @_createBoardView()
     @addPiece = 'wK'
-    @whoseTurn = 'w'
     @curSelected = null
     @validMoves = []
     @computer = {
       'w': 0
       'b': 1
-    }  
-    
-    @next = 
+    }
+
+    @next =
       'KQkr':
         'wK': 'wQ'
         'wQ': 'bK'
@@ -61,6 +61,9 @@ class root.BoardController
     @boardModel.on 'clickSquare', @_onClickSquare
     @boardModel.on 'move', @_onMove
 
+  _setUpBoardViewModel: =>
+    @_viewModel = new root.BoardViewModel()
+
   _onColorSelected: (evt) =>
     checkbox = $(evt.currentTarget)
     if checkbox.attr('checked')
@@ -69,10 +72,8 @@ class root.BoardController
       checkbox.attr('checked', 'checked')
 
     @computer[checkbox.attr('name')] = checkbox.attr('checked')
-    console.log("computer[#{checkbox.attr('name')}] = #{if checkbox.attr('checked') then true else false}")
-  
+
   _onModeSelected: (evt) =>
-    console.log('clicked')
     button = $(evt.currentTarget)
     if @mode == 'KQkr'
       button.attr('value', 'Playing KQkn')
@@ -88,7 +89,7 @@ class root.BoardController
       sq.set('validMove', false)
 
 
-  _select: (curSquare) =>    
+  _select: (curSquare) =>
     eq = (a, b) =>
       return a.get('row') == b.row and a.get('col') == b.col
     curSquare.set('selected', true)
@@ -115,7 +116,6 @@ class root.BoardController
       prvSquare.unset('piece')
       @boardModel.trigger('move')
     else
-      console.log('illegal move')
 
   _onClickSquare: (curSquare) =>
     if @addPiece
@@ -129,91 +129,78 @@ class root.BoardController
         if prvSquare != curSquare
           @_move(prvSquare, curSquare)
       else
-        if curSquare.get('piece') and curSquare.get('piece').charAt(0) == @whoseTurn
+        if curSquare.get('piece') and curSquare.get('piece').charAt(0) == @_viewModel.get('whoseTurn')
           @_select(curSquare)
 
+
   _onMove: =>
-    if @whoseTurn == 'w'
-      @whoseTurn = 'b'
-    else
-      @whoseTurn = 'w'
-    Meteor.call('isMate', @whoseTurn, @boardModel,
-      (err, data) =>
-        if data == 'checkmate'
-          alert('Checkmate!')
-        else if data == 'stalemate'
-          alert('Stalemate!')
-        else
-          @_nextmove()
-        )
+    @_viewModel.toggleWhoseTurn()
+    @_makeServerCall 'isMate', (err, data) =>
+      if data == 'checkmate'
+        alert('Checkmate!')
+      else if data == 'stalemate'
+        alert('Stalemate!')
+      else
+        @_nextmove()
 
   _compmove: =>
-    Meteor.call('bestMove', @whoseTurn, @boardModel, 
-      (err, data) =>
-        if !data
-          return
-        frm = @boardModel.getSquareAt(data.frm.row, data.frm.col)
-        to = @boardModel.getSquareAt(data.to.row, data.to.col)
-        @_move(frm, to)
-      )
+    @_makeServerCall 'bestMove', (err, data) =>
+      if !data
+        return
+      frm = @boardModel.getSquareAt(data.frm.row, data.frm.col)
+      to = @boardModel.getSquareAt(data.to.row, data.to.col)
+      @_move(frm, to)
 
   _reset: =>
     put = (square, piece) =>
       if square
         @boardModel.getSquareAt(square.row, square.col).set('piece', piece)
     if @addPiece == 'wK'
-      console.log('randomizing.')
-      Meteor.call('randomBoard', @mode
-        (err, data) =>
-          if data
-            put(data.K, 'wK')
-            put(data.Q, 'wQ')
-            put(data.k, 'bK')
-            put(data.r, 'bR')
-            put(data.n, 'bN')
-            @addPiece = null
-            console.log('successful.')
-            @_checkState()
-        )
+      Meteor.call 'randomBoard', @mode, (err, data) =>
+        if data
+          put(data.K, 'wK')
+          put(data.Q, 'wQ')
+          put(data.k, 'bK')
+          put(data.r, 'bR')
+          put(data.n, 'bN')
+          @addPiece = null
+          @_checkState()
+
     else
-      console.log('clearing.')
       @boardModel.get('squares').each (p) =>
         p.unset('piece')
         p.set('validMove', false)
         p.set('selected', false)
-      @curSelected = false
+
+      @_viewModel.reset()
       @validMoves = []
       @addPiece = 'wK'
-      @whoseTurn = 'w'
       @_checkState()
 
   _checkState: =>
     if @addPiece == 'wK'
       $('.reset-button').attr('value', 'Random!')
-    else 
+    else
       $('.reset-button').attr('value', 'Clear!')
 
     if !@addPiece
       @_nextmove()
 
-  _nextmove: =>    
-    Meteor.call('getValidMoves', @whoseTurn, @boardModel, @curSelected,
-      (err, data) =>
-        console.log('got valid moves')
+  _nextmove: =>
+    @_makeServerCall 'getValidMoves', (err, data) =>
         @validMoves = data
-      )
 
-    if @computer[@whoseTurn]
+    if @computer[@_viewModel.get('whoseTurn')]
       @_compmove()
     else
-      console.log('your move!')
-      Meteor.call('isInCheck', @whoseTurn, @boardModel,
-        (err, data) =>
-          if data
-            console.log('check!')
-        )
-      Meteor.call('distToMate', @whoseTurn, @boardModel,
-        (err, data) =>
-          console.log("white mates in #{(data - 1) // 2}")
-        )
-    
+      @_makeServerCall 'isInCheck', (err, data) =>
+        if data
+          console.log 'check'
+
+      @_makeServerCall 'distToMate', (err, data) =>
+        console.log 'dist to mate', data//2
+
+  _makeServerCall: (method, callback) ->
+    Meteor.call method, @_viewModel.get('whoseTurn'), @boardModel, callback
+
+

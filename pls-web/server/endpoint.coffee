@@ -5,15 +5,15 @@ root = exports ? this
 
 if (Meteor.isServer)
   Meteor.methods(
-    validMove: (whoseTurn, _board, prvSquare, curSquare) =>
-      board = new root.BoardModel(_board)
-      board.set('squares', new Backbone.Collection(board.get('squares')))
-      return _validMove(whoseTurn, board, prvSquare, curSquare)
+    # validMove: (whoseTurn, _board, prvSquare, curSquare) =>
+    #   board = new root.BoardModel(_board)
+    #   board.set('squares', new Backbone.Collection(board.get('squares')))
+    #   return _validMove(whoseTurn, board, prvSquare, curSquare)
 
-    getValidMoves: (whoseTurn, _board, prvSquare, curSquare) =>
+    getValidMoves: (whoseTurn, _board) =>
       board = new root.BoardModel(_board)
       board.set('squares', new Backbone.Collection(board.get('squares')))
-      return _getLegalMoves(whoseTurn, board, prvSquare, curSquare)
+      return _getLegalMoves(whoseTurn, board)
 
     bestMove: (whoseTurn, _board) =>
       board = new root.BoardModel(_board)
@@ -68,7 +68,7 @@ _getMovesFrom = (square, board) =>
         continue
       for len in _.range(1, 8)
         nx = x + len * dx
-        ny = y + len * dy 
+        ny = y + len * dy
 
         if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
           break
@@ -90,7 +90,7 @@ _getMovesFrom = (square, board) =>
       for dy in _.range(-2, 3)
         if dx * dy == 2 or dx * dy == -2
           nx = x + dx
-          ny = y + dy 
+          ny = y + dy
 
           if nx < 0 or ny < 0 or nx >= 8 or ny >= 8
             continue
@@ -185,7 +185,7 @@ _hashSquare = (square) =>
 
 _read = (whoseTurn, board) =>
   h = (s) =>
-    
+
     _hashSquare(if s then {row: s.get('row'), col: s.get('col')} else null)
 
   return {
@@ -260,7 +260,7 @@ _loadAILocal = () =>
       return
     ai['KQkr'] = "" + data
     console.log('done reading KQkr.')
-    )  
+    )
   fs.readFile('../../../../../ai/KQkn', (err, data) =>
     console.log('reading KQkn.')
     if err
