@@ -253,7 +253,7 @@ _loadAIWeb = () =>
 
 _loadAILocal = () =>
   console.log('loading ai locally.')
-  fs.readFile('../../../../../../AI/files/KQkr', (err, data) =>
+  fs.readFile('../../../../../ai/KQkr', (err, data) =>
     console.log('reading KQkr.')
     if err
       console.log('error: ' + err)
@@ -261,7 +261,7 @@ _loadAILocal = () =>
     ai['KQkr'] = "" + data
     console.log('done reading KQkr.')
     )  
-  fs.readFile('../../../../../../AI/files/KQkn', (err, data) =>
+  fs.readFile('../../../../../ai/KQkn', (err, data) =>
     console.log('reading KQkn.')
     if err
       console.log('error: ' + err)
@@ -272,8 +272,8 @@ _loadAILocal = () =>
 
 
 fs = Npm.require('fs')
-_loadAIWeb()
-#_loadAILocal()
+#_loadAIWeb()
+_loadAILocal()
 
 
 
