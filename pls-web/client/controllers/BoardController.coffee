@@ -157,7 +157,6 @@ class root.BoardController
       p.set('selected', false)
 
   _nextmove: =>
-    console.log 'next move!'
     @_makeServerCall 'getValidMoves', (err, data) =>
         @_viewModel.set('validMoves', data)
 

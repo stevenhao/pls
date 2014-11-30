@@ -2,27 +2,31 @@ root = exports ? this
 
 class root.ControlsView extends Backbone.View
   events:
-    'click .reset-button': '_onReset'
+    'click .random-button': '_onRandom'
+    'click .clear-button': '_onClear'
     'click .dropdown-menu-item': '_onModeItemClick'
 
   initialize: ->
-    @model.on 'change:addPiece', @_checkState
+    @model.on 'change:addPiece', @_checkButtonState
     @model.on 'change:mode', @_renderMode
     @_renderMode()
+    @_checkButtonState()
 
-  _onReset: =>
-    if @model.get('addPiece') is 'wK'
-      @trigger 'callRandomBoard'
-    else
-      @model.reset()
-      @model.set('addPiece', 'wK')
-      @trigger 'resetBoard'
+  _onRandom: ->
+    @trigger 'callRandomBoard'
 
-  _checkState: =>
+  _onClear: ->
+    @model.reset()
+    @model.set('addPiece', 'wK')
+    @trigger 'resetBoard'
+
+  _checkButtonState: =>
     if @model.get('addPiece') == 'wK'
-      $('.reset-button').attr('value', 'Random!')
+      @$('.clear-button').attr('disabled', true)
+      @$('.random-button').removeAttr('disabled')
     else
-      $('.reset-button').attr('value', 'Clear!')
+      @$('.clear-button').removeAttr('disabled', true)
+      @$('.random-button').attr('disabled', true)
 
     if not @model.get('addPiece')?
       @trigger 'triggerNextMove'
