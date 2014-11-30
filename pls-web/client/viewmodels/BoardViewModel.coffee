@@ -28,7 +28,10 @@ class root.BoardViewModel extends Backbone.Model
     @set('whoseTurn', whoseTurn)
 
   reset: ->
-    @clear().set(@defaults)
+    @set('whoseTurn', 'w')
+    @set('curSelected', null)
+    @set('validMoves', [])
+    @set('addPiece', 'wK')
 
   setNextAddPiece: ->
     newAddPiece = root.BoardViewModel.NEXT[@get('mode')][@get('addPiece')]

@@ -17,7 +17,6 @@ class root.ControlsView extends Backbone.View
 
   _onClear: ->
     @model.reset()
-    @model.set('addPiece', 'wK')
     @trigger 'resetBoard'
 
   _checkButtonState: =>
