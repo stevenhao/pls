@@ -30,14 +30,6 @@ class root.BoardViewModel extends Backbone.Model
   reset: ->
     @clear().set(@defaults)
 
-  toggleMode: ->
-    if @get('mode') is root.BoardViewModel.MODE_ONE
-      @set('mode', root.BoardViewModel.MODE_TWO)
-    else
-      @set('mode', root.BoardViewModel.MODE_ONE)
-
   setNextAddPiece: ->
     newAddPiece = root.BoardViewModel.NEXT[@get('mode')][@get('addPiece')]
     @set('addPiece', newAddPiece)
-
-console.log root.BoardViewModel.MODE_ONE
