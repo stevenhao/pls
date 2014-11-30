@@ -197,8 +197,8 @@ class root.BoardController
         if data
           console.log 'check'
 
-      @_makeServerCall 'distToMate', (err, data) =>
-        console.log 'dist to mate', data//2
+    @_makeServerCall 'distToMate', (err, data) =>
+      console.log 'dist to mate', data//2
 
   _makeServerCall: (method, callback) ->
     Meteor.call method, @_viewModel.get('whoseTurn'), @boardModel, callback
