@@ -13,31 +13,24 @@ class root.BoardController
     @_setUpBoardModel()
     @_setUpBoardViewModel()
     @_createBoardView()
-    @addPiece = 'wK'
-    @curSelected = null
-    @validMoves = []
+    @_createControlsView()
+
     @computer = {
       'w': 0
       'b': 1
     }
 
-    @next =
-      'KQkr':
-        'wK': 'wQ'
-        'wQ': 'bK'
-        'bK': 'bR'
-        'bR': null
-      'KQkn':
-        'wK': 'wQ'
-        'wQ': 'bK'
-        'bK': 'bN'
-        'bN': null
-    @mode = 'KQkr'
-
     $('.color-selector').on('click', @_onColorSelected)
     $('.go-button').on('click', @_compmove)
-    $('.reset-button').on('click', @_reset)
-    $('.mode-selector').on('click', @_onModeSelected)
+
+  _createControlsView: =>
+    @_controlsView = new root.ControlsView
+      el: $('.left-side-bar')
+      model: @_viewModel
+
+    @_controlsView.on 'resetBoard', @_resetBoard
+    @_controlsView.on 'callRandomBoard', @_onCallRandomBoard
+    @_controlsView.on 'triggerNextMove', @_nextmove
 
   _createBoardView: =>
     @boardView = new root.BoardView
@@ -48,6 +41,7 @@ class root.BoardController
 
   _setUpBoardModel: =>
     @boardModel = new root.BoardModel
+
     squares = @boardModel.get('squares')
     squares.reset()
     for row in _.range(8)
@@ -62,7 +56,8 @@ class root.BoardController
     @boardModel.on 'move', @_onMove
 
   _setUpBoardViewModel: =>
-    @_viewModel = new root.BoardViewModel()
+    @_viewModel = new root.BoardViewModel
+      'mode': root.BoardViewModel.MODE_ONE
 
   _onColorSelected: (evt) =>
     checkbox = $(evt.currentTarget)
@@ -70,42 +65,31 @@ class root.BoardController
       checkbox.removeAttr('checked')
     else
       checkbox.attr('checked', 'checked')
-
     @computer[checkbox.attr('name')] = checkbox.attr('checked')
 
-  _onModeSelected: (evt) =>
-    button = $(evt.currentTarget)
-    if @mode == 'KQkr'
-      button.attr('value', 'Playing KQkn')
-      @mode = 'KQkn'
-    else
-      button.attr('value', 'Playing KQkr')
-      @mode = 'KQkr'
-
   _deselect: =>
-    @curSelected.set('selected', false)
-    @curSelected = null
+    curSelected = @_viewModel.get('curSelected')
+    curSelected.set('selected', false)
+    @_viewModel.unset('curSelected')
     @boardModel.get('squares').each (sq) =>
       sq.set('validMove', false)
 
+  _eqSq: (a, b) =>
+        return a.get('row') == b.row and a.get('col') == b.col
 
   _select: (curSquare) =>
-    eq = (a, b) =>
-      return a.get('row') == b.row and a.get('col') == b.col
     curSquare.set('selected', true)
-    @curSelected = curSquare
-    _.each @validMoves, (mv) =>
+    @_viewModel.set('curSelected', curSquare)
+    _.each @_viewModel.get('validMoves'), (mv) =>
       r = mv.to.row
       c = mv.to.col
-      if eq(curSquare, mv.frm)
+      if @_eqSq(curSquare, mv.frm)
         @boardModel.getSquareAt(r, c).set('validMove', true)
 
   _validMove: (prvSquare, curSquare) =>
-    eq = (a, b) =>
-      return a.get('row') == b.row and a.get('col') == b.col
     ret = false
-    _.each @validMoves, (mv) =>
-      if eq(prvSquare, mv.frm) and eq(curSquare, mv.to)
+    _.each @_viewModel.get('validMoves'), (mv) =>
+      if @_eqSq(prvSquare, mv.frm) and @_eqSq(curSquare, mv.to)
         ret = true
     return ret
 
@@ -118,19 +102,20 @@ class root.BoardController
     else
 
   _onClickSquare: (curSquare) =>
-    if @addPiece
-      curSquare.set('piece', @addPiece)
-      @addPiece = @next[@mode][@addPiece]
-      @_checkState()
+    if @_viewModel.get('addPiece')?
+      curSquare.set('piece', @_viewModel.get('addPiece'))
+      mode = @_viewModel.get('mode')
+      @_viewModel.setNextAddPiece()
     else
-      prvSquare = @curSelected
+      prvSquare = @_viewModel.get('curSelected')
       if prvSquare
         @_deselect()
         if prvSquare != curSquare
           @_move(prvSquare, curSquare)
       else
-        if curSquare.get('piece') and curSquare.get('piece').charAt(0) == @_viewModel.get('whoseTurn')
-          @_select(curSquare)
+        if curSquare.get('piece') and
+          curSquare.get('piece').charAt(0) == @_viewModel.get('whoseTurn')
+            @_select(curSquare)
 
 
   _onMove: =>
@@ -151,44 +136,30 @@ class root.BoardController
       to = @boardModel.getSquareAt(data.to.row, data.to.col)
       @_move(frm, to)
 
-  _reset: =>
+  _onCallRandomBoard: =>
     put = (square, piece) =>
-      if square
+      if square?
         @boardModel.getSquareAt(square.row, square.col).set('piece', piece)
-    if @addPiece == 'wK'
-      Meteor.call 'randomBoard', @mode, (err, data) =>
-        if data
-          put(data.K, 'wK')
-          put(data.Q, 'wQ')
-          put(data.k, 'bK')
-          put(data.r, 'bR')
-          put(data.n, 'bN')
-          @addPiece = null
-          @_checkState()
 
-    else
-      @boardModel.get('squares').each (p) =>
-        p.unset('piece')
-        p.set('validMove', false)
-        p.set('selected', false)
+    Meteor.call 'randomBoard', @_viewModel.get('mode'), (err, data) =>
+      if data
+        put(data.K, 'wK')
+        put(data.Q, 'wQ')
+        put(data.k, 'bK')
+        put(data.r, 'bR')
+        put(data.n, 'bN')
+        @_viewModel.set('addPiece', null)
 
-      @_viewModel.reset()
-      @validMoves = []
-      @addPiece = 'wK'
-      @_checkState()
-
-  _checkState: =>
-    if @addPiece == 'wK'
-      $('.reset-button').attr('value', 'Random!')
-    else
-      $('.reset-button').attr('value', 'Clear!')
-
-    if !@addPiece
-      @_nextmove()
+  _resetBoard: =>
+    @boardModel.get('squares').each (p) =>
+      p.unset('piece')
+      p.set('validMove', false)
+      p.set('selected', false)
 
   _nextmove: =>
+    console.log 'next move!'
     @_makeServerCall 'getValidMoves', (err, data) =>
-        @validMoves = data
+        @_viewModel.set('validMoves', data)
 
     if @computer[@_viewModel.get('whoseTurn')]
       @_compmove()
