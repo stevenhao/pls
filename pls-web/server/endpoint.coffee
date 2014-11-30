@@ -40,7 +40,7 @@ if (Meteor.isServer)
         return "not mate"
 
     distToMate: (whoseTurn, _board) =>
-      console.log('computing dist to mate.')
+      # console.log('computing dist to mate.')
       board = new root.BoardModel(_board)
       board.set('squares', new Backbone.Collection(board.get('squares')))
       return _movesTillMate(whoseTurn, board)
@@ -204,14 +204,14 @@ _mask = (K, Q, k, r, turn) =>
  30     fliph(Q); fliph(k); fliph(n);
  31     r = 7 - r;
  32   }
- 33 
+ 33
  34   if (c >= 4) {
  35     flipv(Q);
  36     flipv(k);
  37     flipv(n);
  38     c = 7 - c;
  39   }
- 40 
+ 40
  41   if (r > c) {
  42     flipd(Q);
  43     flipd(k);
@@ -220,7 +220,7 @@ _mask = (K, Q, k, r, turn) =>
  46     r = c;
  47     c = _r;
  48   }
- 49 
+ 49
  50   K = r * (r + 1) / 2 + c;
  51   return turn + 2 * (n + 65 * (k + 65 * (Q + 65 * K)));
 """
@@ -240,26 +240,28 @@ _mask = (K, Q, k, r, turn) =>
     return 8 * (x % 8) + x // 8
 
   if R >= 4
+    K = fliph(K)
     Q = fliph(Q)
     k = fliph(k)
     r = fliph(r)
     R = 7 - R
 
-  if C >= 4
-    Q = flipv(Q)
-    k = flipv(k)
-    r = flipv(r)
-    C = 7 - C
+  # if C >= 4
+  #   Q = flipv(Q)
+  #   k = flipv(k)
+  #   r = flipv(r)
+  #   C = 7 - C
 
-  if R > C
-    Q = flipd(Q)
-    k = flipd(k)
-    r = flipd(r)
-    _R = R
-    R = C
-    C = _R
+  # if R > C
+  #   Q = flipd(Q)
+  #   k = flipd(k)
+  #   r = flipd(r)
+  #   _R = R
+  #   R = C
+  #   C = _R
 
-  K = R * (R + 1) / 2 + C
+  # # K = R * (R + 1) / 2 + C
+
   return turn + 2 * (r + 65 * (k + 65 * (Q + 65 * K)))
 
 _movesTillMate = (whoseTurn, board) =>
@@ -273,14 +275,14 @@ _movesTillMate = (whoseTurn, board) =>
     mask = _mask(loc.K, loc.Q, loc.k, loc.r, loc.turn)
     ans = ai[mode].charCodeAt(mask) - 40
 
-  console.log("mode: #{mode}")
+  # console.log("mode: #{mode}")
   if ans == -1
     ans = 200
 
   return ans
 
 _getBestMove = (whoseTurn, board) =>
-  console.log('finding best move.')
+  # console.log('finding best move.')
   allMoves = _getLegalMoves(whoseTurn, board)
   otherTurn = if whoseTurn == 'b' then 'w' else 'b'
   goodMoves = []
@@ -314,7 +316,7 @@ _loadAIWeb = () =>
 
 _loadAILocal = () =>
   console.log('loading ai locally.')
-  fs.readFile('../../../../../ai/KQkr', (err, data) =>
+  fs.readFile('../../../../../ai/KQkr.txt', (err, data) =>
     console.log('reading KQkr.')
     if err
       console.log('error: ' + err)
@@ -322,7 +324,7 @@ _loadAILocal = () =>
     ai['KQkr'] = "" + data
     console.log('done reading KQkr.')
     )
-  fs.readFile('../../../../../ai/KQkn', (err, data) =>
+  fs.readFile('../../../../../ai/KQkn.txt', (err, data) =>
     console.log('reading KQkn.')
     if err
       console.log('error: ' + err)
